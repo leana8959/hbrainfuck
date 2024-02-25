@@ -6,16 +6,16 @@ stack run -- example.bf
 ```
 or
 ```bash
-nix run "git+https://git.earth2077.fr/leana/hbrainfuck" -- example.bf
+nix run . -- example.bf
 ```
 to see a "hello world" !
 
-You can also pass in another file for it to run.
+It also reads from stdin when no input is provided
 
 Sources:
 https://en.wikipedia.org/wiki/Brainfuck
 
-Thanks to all those people who help me, without you this fun project wouldn't be
-possible :)
+Thanks to all those people who helped me along the way, without you this fun
+project wouldn't be possible :)
 
 Have fun !

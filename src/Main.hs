@@ -13,8 +13,12 @@ import Parser (bfParserToEof)
 
 main :: IO ()
 main = do
-  (fname : _) <- getArgs
-  content <- openFile fname ReadMode >>= TIO.hGetContents
+  args <- getArgs
+
+  content <- case args of
+    (fname : _) | fname /= "-" ->
+      openFile fname ReadMode >>= TIO.hGetContents
+    _ -> TIO.getContents
 
   state <- initBFState
   let output = bimap errorBundlePretty (($ state) . evalStateT . evalBFAst)
