@@ -5,7 +5,6 @@ import Control.Monad.State (MonadIO(liftIO), MonadState(get, put), StateT)
 import Data.Array.IO (IOArray)
 import Data.Array.MArray (newArray, readArray, writeArray)
 import Data.Char (chr)
-import Data.Text (Text)
 
 import Types (BFAst, BFAstE(..), BFState(..))
 
@@ -17,10 +16,10 @@ initBFState = do
 modifyArray :: IOArray Int Int -> Int -> (Int -> Int) -> IO ()
 modifyArray arr ix f = readArray arr ix >>= writeArray arr ix . f
 
-type BFOutput = Text
+type BFOutput = [Char]
 
 evalBFAst :: BFAst -> StateT BFState IO BFOutput
-evalBFAst [] = return ""
+evalBFAst [] = return []
 evalBFAst ast@(x : xs) = do
   st@(BFState {dataP, mem}) <- get
   case x of
@@ -40,12 +39,12 @@ evalBFAst ast@(x : xs) = do
       currentValue <- liftIO $ readArray mem dataP
       if currentValue == 0
         then evalBFAst xs -- jump over the looped part
-        else evalBFAst ys >> evalBFAst ast -- loop
+        else (++) <$> evalBFAst ys <*> evalBFAst ast -- loop
     Read -> do
       liftIO $ putStrLn "Enter value: "
       int <- liftIO getLine
       liftIO $ writeArray mem dataP (read int)
       evalBFAst xs
     Show -> do
-      liftIO $ readArray mem dataP >>= (putStr . (: []) . chr)
-      evalBFAst xs
+      value <- liftIO $ readArray mem dataP
+      (chr value :) <$> evalBFAst xs
