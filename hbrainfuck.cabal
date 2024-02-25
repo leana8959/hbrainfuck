@@ -9,6 +9,7 @@ common common
   default-extensions:
     NamedFieldPuns
     OverloadedStrings
+    BlockArguments
 
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates

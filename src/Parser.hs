@@ -13,22 +13,19 @@ type BFParser = Parsec Void Input
 
 sc :: BFParser ()
 sc = skipMany (noneOf allowedChars)
-  where
-    allowedChars = ['>', '<', '+', '-', ',', '.', '[', ']']
+  where allowedChars = ['>', '<', '+', '-', ',', '.', '[', ']']
 
 bfParser :: BFParser BFAst
 bfParser = many (parseOne <* sc)
-  where
-    parseOne =
-      choice
-        [ Movr <$ char '>'
-        , Movl <$ char '<'
-        , Inc <$ char '+'
-        , Dec <$ char '-'
-        , Read <$ char ','
-        , Show <$ char '.'
-        , Loop <$> between (char '[' <* sc) (char ']') bfParser
-        ]
+  where parseOne = choice
+          [ Movr <$ char '>'
+          , Movl <$ char '<'
+          , Inc <$ char '+'
+          , Dec <$ char '-'
+          , Read <$ char ','
+          , Show <$ char '.'
+          , Loop <$> between (char '[' <* sc) (char ']') bfParser
+          ]
 
 bfParserToEof :: BFParser BFAst
 bfParserToEof = bfParser <* eof
