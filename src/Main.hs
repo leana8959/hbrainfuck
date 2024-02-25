@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Monad.State (execStateT)
 import Data.Bifunctor (Bifunctor(bimap))
 import qualified Data.Text.IO as TIO
 import Eval (evalBFAst, initBFState)
@@ -16,10 +17,9 @@ main = do
   content <- openFile fname ReadMode >>= TIO.hGetContents
 
   state <- initBFState
-  let output =
-        bimap errorBundlePretty (evalBFAst state)
-          . runParser bfParserToEof "file"
-          $ content
+  let output = bimap errorBundlePretty (($ state) . execStateT . evalBFAst)
+             . runParser bfParserToEof "file"
+             $ content
 
   case output of
     Right resultState -> resultState >> putStrLn "The program has ended"
