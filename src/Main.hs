@@ -9,7 +9,7 @@ import System.Environment (getArgs)
 import System.IO (openFile)
 import Text.Megaparsec (errorBundlePretty, runParser)
 
-import Parser (bfParserToEof)
+import Parser (bfParser)
 
 main :: IO ()
 main = do
@@ -18,7 +18,7 @@ main = do
 
   state <- initBFState
   let output = bimap errorBundlePretty (($ state) . evalStateT . evalBFAst)
-             . runParser bfParserToEof "file"
+             . runParser bfParser "file"
              $ content
 
   case output of

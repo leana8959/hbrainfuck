@@ -23,17 +23,17 @@ evalBFAst [] = return []
 evalBFAst ast@(x : xs) = do
   st@(BFState {dataP, mem}) <- get
   case x of
-    Inc -> do
-      liftIO $ modifyArray mem dataP (+ 1)
+    Inc n -> do
+      liftIO $ modifyArray mem dataP (+ n)
       evalBFAst xs
-    Dec -> do
-      liftIO $ modifyArray mem dataP (subtract 1)
+    Dec n -> do
+      liftIO $ modifyArray mem dataP (subtract n)
       evalBFAst xs
-    Movr -> do
-      put st {dataP = dataP + 1}
+    Movr n -> do
+      put st {dataP = dataP + n}
       evalBFAst xs
-    Movl -> do
-      put st {dataP = dataP - 1}
+    Movl n -> do
+      put st {dataP = dataP - n}
       evalBFAst xs
     Loop ys -> do
       currentValue <- liftIO $ readArray mem dataP

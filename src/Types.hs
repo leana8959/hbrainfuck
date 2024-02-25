@@ -5,10 +5,10 @@ import Data.Array.IO (IOArray)
 type BFAst = [BFAstE]
 
 data BFAstE
-  = Inc
-  | Dec
-  | Movr
-  | Movl
+  = Inc Int
+  | Dec Int
+  | Movr Int
+  | Movl Int
   | Loop BFAst
   | Read
   | Show
