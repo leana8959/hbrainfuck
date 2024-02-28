@@ -28,4 +28,4 @@ bfParser = many (parseOne <* sc)
           ]
 
 bfParserToEof :: BFParser BFAst
-bfParserToEof = bfParser <* eof
+bfParserToEof = sc *> bfParser <* eof
