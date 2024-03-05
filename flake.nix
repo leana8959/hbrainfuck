@@ -15,23 +15,17 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
 
-      # need to match Stackage LTS version from stack.yaml resolver
       hPkgs = pkgs.haskell.packages.ghc947;
 
       devTools = [
         stack-wrapped
-        hPkgs.ghc # GHC compiler in the desired version (will be available on PATH)
-        hPkgs.haskell-language-server # LSP server for editor
-        hPkgs.stylish-haskell # Haskell formatter
+        hPkgs.ghc
+        hPkgs.haskell-language-server
+        hPkgs.stylish-haskell
       ];
 
-      # Wrap Stack to work with our Nix integration. We don't want to modify
-      # stack.yaml so non-Nix users don't notice anything.
-      # -no-nix: We don't want Stack's way of integrating Nix.
-      # --system-ghc    # Use the existing GHC on PATH (will come from this Nix file)
-      # --no-install-ghc  # Don't try to install GHC if no matching GHC found on PATH
       stack-wrapped = pkgs.symlinkJoin {
-        name = "stack"; # will be available as the usual `stack` in terminal
+        name = "stack";
         paths = [pkgs.stack];
         buildInputs = [pkgs.makeWrapper];
         postBuild = ''
@@ -46,7 +40,17 @@
     in rec {
       formatter = pkgs.alejandra;
 
-      packages.default = pkgs.haskellPackages.callCabal2nix "hbrainfuck" ./. {};
+      packages.default = (pkgs.haskellPackages.callCabal2nix "hbrainfuck" ./. {}).overrideAttrs (old: {
+        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pkgs.installShellFiles];
+        postInstall =
+          (old.postInstall or "")
+          + ''
+            installShellCompletion --cmd hbf \
+                --bash <("$out/bin/hbf" --bash-completion-script "$out/bin/hbf") \
+                --fish <("$out/bin/hbf" --fish-completion-script "$out/bin/hbf") \
+                --zsh  <("$out/bin/hbf" --zsh-completion-script  "$out/bin/hbf")
+          '';
+      });
 
       devShells.default = packages.default.env.overrideAttrs {
         buildInputs = devTools;
