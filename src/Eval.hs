@@ -4,7 +4,7 @@ import Control.Monad.State (MonadIO(liftIO), MonadState(get, put), StateT)
 
 import Data.Array.IO (IOArray)
 import Data.Array.MArray (newArray, readArray, writeArray)
-import Data.Char (chr)
+import Data.Char (chr, ord)
 
 import Types (BFAst, BFAstE(..), BFState(..))
 
@@ -41,9 +41,9 @@ evalBFAst ast@(x : xs) = do
         then evalBFAst xs -- jump over the looped part
         else (++) <$> evalBFAst ys <*> evalBFAst ast -- loop
     Read -> do
-      liftIO $ putStrLn "Enter value: "
-      int <- liftIO getLine
-      liftIO $ writeArray mem dataP (read int)
+      liftIO $ putStrLn "Enter a byte (as ascii char): "
+      input <- liftIO getChar
+      liftIO $ writeArray mem dataP (ord input)
       evalBFAst xs
     Show -> do
       value <- liftIO $ readArray mem dataP
