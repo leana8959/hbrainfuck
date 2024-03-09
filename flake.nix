@@ -2,6 +2,11 @@
   # credit: https://docs.haskellstack.org/en/stable/nix_integration/#using-a-custom-shellnix-file
   description = "A haskell brainfuck interpreter";
 
+  nixConfig = {
+    substituters = ["https://leana8959.cachix.org"];
+    trusted-public-keys = ["leana8959.cachix.org-1:CxQSAp8lcgMv8Me459of0jdXRW2tcyeYRKTiiUq8z0M="];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
