@@ -35,14 +35,10 @@
         buildInputs = [pkgs.makeWrapper];
         postBuild = ''
           wrapProgram $out/bin/stack \
-            --add-flags "\
-              --no-nix \
-              --system-ghc \
-              --no-install-ghc \
-            "
+            --add-flags "--no-nix --system-ghc --no-install-ghc"
         '';
       };
-    in rec {
+    in {
       formatter = pkgs.alejandra;
 
       packages.default = (pkgs.haskellPackages.callCabal2nix "hbrainfuck" ./. {}).overrideAttrs (old: {
@@ -57,7 +53,7 @@
           '';
       });
 
-      devShells.default = packages.default.env.overrideAttrs {
+      devShells.default = pkgs.mkShell {
         buildInputs = devTools;
 
         # Make external Nix c libraries like zlib known to GHC, like pkgs.haskell.lib.buildStackProject does
