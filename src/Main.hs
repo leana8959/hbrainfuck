@@ -7,30 +7,28 @@ import Eval (evalBFAst, initBFState)
 import GHC.IO.IOMode (IOMode(ReadMode))
 import Options.Applicative
   (ParserInfo, argument, execParser, fullDesc, header, help, helper, info,
-  metavar, optional, progDesc, str, (<**>))
+  metavar, progDesc, str, (<**>))
 import System.IO (openFile)
 import Text.Megaparsec (errorBundlePretty, runParser)
 
 import Parser (bfParserToEof)
 
-argsParser :: ParserInfo (Maybe String)
-argsParser = withInfo (p <**> helper)
+argsParser :: ParserInfo String
+argsParser = withInfo (pFname <**> helper)
   where
     withInfo = flip info
       ( fullDesc
         <> header "hbrainfuck - a simple interpreter for brainfuck"
         <> progDesc "Interpretes a program written in the brainfuck language and show the result"
       )
-    p = optional
-        (argument str (metavar "FILEPATH" <> help "Which file to read from"))
+    pFname = argument str (metavar "PROGRAM" <> help "Path to the program to be interpreted")
 
 main :: IO ()
 main = do
   file <- execParser argsParser
 
   content <- case file of
-    Just fname -> openFile fname ReadMode >>= TIO.hGetContents
-    Nothing    -> TIO.getContents
+    fname -> openFile fname ReadMode >>= TIO.hGetContents
 
   state <- initBFState
   let output = bimap errorBundlePretty (($ state) . evalStateT . evalBFAst)
