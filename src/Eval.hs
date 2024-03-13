@@ -13,7 +13,7 @@ initBFState = do
   mem <- newArray (0, 1024) 0
   return BFState {dataP = 0, mem}
 
-modifyArray :: IOArray Int Int -> Int -> (Int -> Int) -> IO ()
+modifyArray :: IOArray Int a -> Int -> (a -> a) -> IO ()
 modifyArray arr ix f = readArray arr ix >>= writeArray arr ix . f
 
 type BFOutput = [Char]
@@ -43,8 +43,8 @@ evalBFAst ast@(x : xs) = do
     Read -> do
       liftIO $ putStrLn "Enter a byte (as ascii char): "
       input <- liftIO getChar
-      liftIO $ writeArray mem dataP (ord input)
+      liftIO $ writeArray mem dataP (fromIntegral . ord $ input)
       evalBFAst xs
     Show -> do
       value <- liftIO $ readArray mem dataP
-      (chr value :) <$> evalBFAst xs
+      (chr (fromIntegral value) :) <$> evalBFAst xs
