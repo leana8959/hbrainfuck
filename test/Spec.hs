@@ -1,12 +1,12 @@
 module Main where
 
-import Test.Hspec
+import Test.Hspec (Spec, describe, hspec, it, shouldBe)
 
-import Eval (evalBFAst, initBFState)
+import Eval (evalBFAst)
 import Parser (bfParserToEof)
-import Types
+import Types (BFAst, BFAstE(Dec, Inc, Loop, Movl, Movr, Show), emptyUnboundTape)
 
-import Control.Monad.State
+import Control.Monad.State (evalStateT)
 
 import Test.Hspec.Megaparsec (shouldParse)
 import Text.Megaparsec (runParser)
@@ -27,8 +27,7 @@ spec = do
       runParser bfParserToEof "" "++ > +++++ [ < + > - ] ++++ ++++ [ < +++ +++ > - ] < ." `shouldParse` additionExample
   describe "Eval" do
     it "should evaluate addition example" do
-      initState <- initBFState
-      bfOutput <- evalStateT (evalBFAst additionExample) initState
+      bfOutput <- evalStateT (evalBFAst additionExample) emptyUnboundTape
       bfOutput `shouldBe` "7"
 
 main :: IO ()
