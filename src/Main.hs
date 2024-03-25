@@ -1,17 +1,18 @@
 module Main where
 
-import Control.Monad.State (evalStateT)
 import Data.Bifunctor (Bifunctor(bimap))
 import qualified Data.Text.IO as TIO
-import Eval (evalBFAst, initBFState)
 import GHC.IO.IOMode (IOMode(ReadMode))
 import Options.Applicative
   (ParserInfo, argument, execParser, fullDesc, header, help, helper, info,
   metavar, progDesc, str, (<**>))
 import System.IO (openFile)
+import Control.Monad.State (evalStateT)
 import Text.Megaparsec (errorBundlePretty, runParser)
 
 import Parser (bfParserToEof)
+import Eval (evalBFAst)
+import Types (emptyUnboundTape)
 
 argsParser :: ParserInfo String
 argsParser = withInfo (pFname <**> helper)
@@ -30,8 +31,7 @@ main = do
   content <- case file of
     fname -> openFile fname ReadMode >>= TIO.hGetContents
 
-  state <- initBFState
-  let output = bimap errorBundlePretty (($ state) . evalStateT . evalBFAst)
+  let output = bimap errorBundlePretty (($ emptyUnboundTape) . evalStateT . evalBFAst)
              . runParser bfParserToEof "file"
              $ content
 

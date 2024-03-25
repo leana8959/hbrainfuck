@@ -1,50 +1,41 @@
-module Eval (evalBFAst, initBFState) where
+module Eval (evalBFAst) where
+
+import Prelude hiding (read)
 
 import Control.Monad.State (MonadIO(liftIO), MonadState(get, put), StateT)
-
-import Data.Array.IO (IOArray)
-import Data.Array.MArray (newArray, readArray, writeArray)
 import Data.Char (chr, ord)
 
-import Types (BFAst, BFAstE(..), BFState(..))
-
-initBFState :: IO BFState
-initBFState = do
-  mem <- newArray (0, 1024) 0
-  return BFState {dataP = 0, mem}
-
-modifyArray :: IOArray Int a -> Int -> (a -> a) -> IO ()
-modifyArray arr ix f = readArray arr ix >>= writeArray arr ix . f
+import Types (BFAst, BFAstE(..), BFState, backward, forward, modify, headOfTape)
 
 type BFOutput = [Char]
 
 evalBFAst :: BFAst -> StateT BFState IO BFOutput
 evalBFAst [] = return []
 evalBFAst ast@(x : xs) = do
-  st@(BFState {dataP, mem}) <- get
+  tape <- get
   case x of
     Inc -> do
-      liftIO $ modifyArray mem dataP (+ 1)
+      put $ modify (+ 1) tape
       evalBFAst xs
     Dec -> do
-      liftIO $ modifyArray mem dataP (subtract 1)
+      put $ modify (subtract 1) tape
       evalBFAst xs
     Movr -> do
-      put st {dataP = dataP + 1}
+      put $ forward tape
       evalBFAst xs
     Movl -> do
-      put st {dataP = dataP - 1}
+      put $ backward tape
       evalBFAst xs
     Loop ys -> do
-      currentValue <- liftIO $ readArray mem dataP
-      if currentValue == 0
+      let value = headOfTape tape
+      if value == 0
         then evalBFAst xs -- jump over the looped part
         else (++) <$> evalBFAst ys <*> evalBFAst ast -- loop
     Read -> do
       liftIO $ putStrLn "Enter a byte (as ascii char): "
       input <- liftIO getChar
-      liftIO $ writeArray mem dataP (fromIntegral . ord $ input)
+      put $ modify (const . fromIntegral . ord $ input) tape
       evalBFAst xs
     Show -> do
-      value <- liftIO $ readArray mem dataP
+      let value = headOfTape tape
       (chr (fromIntegral value) :) <$> evalBFAst xs
